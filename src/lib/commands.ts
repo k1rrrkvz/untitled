@@ -14,6 +14,24 @@ interface FileSystem {
 }
 
 let currentPath = '~'
+let cachedTimezone: string | null = null
+
+async function getTimezoneFromIP(): Promise<string> {
+  if (cachedTimezone) return cachedTimezone
+  
+  try {
+    const response = await fetch('https://ipapi.co/json/')
+    const data = await response.json()
+    if (data.timezone) {
+      cachedTimezone = data.timezone
+      return data.timezone
+    }
+  } catch (error) {
+    console.warn('Failed to fetch timezone from IP:', error)
+  }
+  
+  return Intl.DateTimeFormat().resolvedOptions().timeZone
+}
 
 function createFileSystem(userData: any, repoData: RepoData | null): FileSystem {
   const repos = repoData?.repos || []
@@ -219,8 +237,22 @@ export async function executeCommand(
 
     case 'date': {
       const now = new Date()
-      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-      return `${now.toLocaleString()} ${timeZone}`
+      const timeZone = await getTimezoneFromIP()
+      const dateStr = now.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric',
+        timeZone 
+      })
+      const timeStr = now.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false,
+        timeZone 
+      })
+      return `${dateStr} ${timeStr} ${timeZone}`
     }
 
     case 'echo':
