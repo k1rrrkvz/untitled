@@ -13,6 +13,7 @@ interface TerminalLine {
   type: 'command' | 'output'
   content: string
   timestamp: number
+  animate?: boolean
 }
 
 interface TerminalProps {
@@ -39,7 +40,8 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
           id: '0',
           type: 'output',
           content: '╔════════════════════════════════════════════════════════════════╗\n║  DEVELOPER TERMINAL v2.4.1                                     ║\n║  System initialized. Type "help" for available commands.       ║\n╚════════════════════════════════════════════════════════════════╝',
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          animate: false
         }
       ]
       setLines(welcomeLines)
@@ -73,7 +75,8 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
       id: Date.now().toString(),
       type: 'command',
       content: input,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      animate: false
     }
 
     setLines(current => current ? [...current, commandLine] : [commandLine])
@@ -87,7 +90,8 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
         id: (Date.now() + 1).toString(),
         type: 'output',
         content: result,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        animate: true
       }
       setLines(current => current ? [...current, outputLine] : [outputLine])
     }
@@ -175,7 +179,7 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
                       <span className="text-primary">{line.content}</span>
                     </div>
                   ) : (
-                    <TerminalOutput content={line.content} />
+                    <TerminalOutput content={line.content} animate={line.animate} />
                   )}
                 </div>
               ))}

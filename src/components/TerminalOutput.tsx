@@ -3,13 +3,18 @@ import { useEffect, useState } from 'react'
 interface TerminalOutputProps {
   content: string
   animate?: boolean
+  typingSpeed?: number
 }
 
-export function TerminalOutput({ content, animate = false }: TerminalOutputProps) {
+export function TerminalOutput({ content, animate = true, typingSpeed = 2 }: TerminalOutputProps) {
   const [displayedContent, setDisplayedContent] = useState(animate ? '' : content)
+  const [isTyping, setIsTyping] = useState(animate)
   
   useEffect(() => {
     if (animate && content) {
+      setIsTyping(true)
+      setDisplayedContent('')
+      
       let index = 0
       const interval = setInterval(() => {
         if (index < content.length) {
@@ -17,16 +22,26 @@ export function TerminalOutput({ content, animate = false }: TerminalOutputProps
           index++
         } else {
           clearInterval(interval)
+          setIsTyping(false)
         }
-      }, 10)
+      }, typingSpeed)
       
-      return () => clearInterval(interval)
+      return () => {
+        clearInterval(interval)
+        setIsTyping(false)
+      }
+    } else {
+      setDisplayedContent(content)
+      setIsTyping(false)
     }
-  }, [content, animate])
+  }, [content, animate, typingSpeed])
 
   return (
-    <pre className="font-mono text-foreground whitespace-pre overflow-x-auto">
-      {animate ? displayedContent : content}
-    </pre>
+    <div className="relative">
+      <pre className="font-mono text-foreground whitespace-pre overflow-x-auto">
+        {displayedContent}
+        {isTyping && <span className="cursor-blink text-accent terminal-glow">▐</span>}
+      </pre>
+    </div>
   )
 }
