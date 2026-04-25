@@ -5,6 +5,42 @@ interface RepoData {
   totalForks: number
 }
 
+function createBox(title: string, content: string): string {
+  const width = 64
+  const line = '─'.repeat(width)
+  const topBorder = `┌${line}┐`
+  const bottomBorder = `└${line}┘`
+  const titleLine = `│${title.padStart((width + title.length) / 2).padEnd(width)}│`
+  
+  const contentLines = content.split('\n').map(line => {
+    if (line.length > width) {
+      return `│${line.substring(0, width)}│`
+    }
+    return `│${line.padEnd(width)}│`
+  }).join('\n')
+  
+  return `${topBorder}\n${titleLine}\n${bottomBorder}\n${contentLines}`
+}
+
+function createBoxWithDivider(title: string, content: string): string {
+  const width = 64
+  const line = '─'.repeat(width)
+  const divider = '─'.repeat(width)
+  const topBorder = `┌${line}┐`
+  const bottomBorder = `└${line}┘`
+  const middleDivider = `├${divider}┤`
+  const titleLine = `│${title.padStart((width + title.length) / 2).padEnd(width)}│`
+  
+  const contentLines = content.split('\n').map(line => {
+    if (line.length > width) {
+      return `│${line.substring(0, width)}│`
+    }
+    return `│${line.padEnd(width)}│`
+  }).join('\n')
+  
+  return `${topBorder}\n${titleLine}\n${middleDivider}\n${contentLines}\n${bottomBorder}`
+}
+
 export async function executeCommand(
   command: string,
   userData: any,
@@ -14,26 +50,21 @@ export async function executeCommand(
 
   switch (cmd) {
     case 'help':
-      return `╔════════════════════════════════════════════════════════════════╗
-║                      AVAILABLE COMMANDS                        ║
-╠════════════════════════════════════════════════════════════════╣
-║  help      - Show this help menu                               ║
-║  about     - Display developer bio and background              ║
-║  skills    - List technical skills and proficiencies           ║
-║  projects  - Show featured projects and repositories           ║
-║  stats     - Display GitHub statistics and metrics             ║
-║  contact   - Get contact information and social links          ║
-║  clear     - Clear terminal screen                             ║
-╚════════════════════════════════════════════════════════════════╝
+      const helpContent = `  help      - Show this help menu                               
+  about     - Display developer bio and background              
+  skills    - List technical skills and proficiencies           
+  projects  - Show featured projects and repositories           
+  stats     - Display GitHub statistics and metrics             
+  contact   - Get contact information and social links          
+  clear     - Clear terminal screen                             `
+      
+      return `${createBoxWithDivider('AVAILABLE COMMANDS', helpContent)}
 
 TIP: Use arrow keys to navigate command history
 TIP: Press Tab to auto-complete commands`
 
     case 'about':
-      return `╔════════════════════════════════════════════════════════════════╗
-║                         ABOUT ME                               ║
-╚════════════════════════════════════════════════════════════════╝
-
+      const aboutContent = `
 > Name: ${userData?.login || 'GitHub Developer'}
 > Role: Full-Stack Developer & Open Source Contributor
 > Location: Remote / Global
@@ -46,6 +77,8 @@ across multiple technologies and domains, always pushing to learn and
 improve.
 
 > Profile: https://github.com/${userData?.login || 'username'}`
+      
+      return createBox('ABOUT ME', aboutContent)
 
     case 'skills':
       if (!repoData || !repoData.languages) {
@@ -58,10 +91,7 @@ improve.
 
       const total = languages.reduce((sum, [, val]) => sum + val, 0)
 
-      let output = `╔════════════════════════════════════════════════════════════════╗
-║                      TECHNICAL SKILLS                          ║
-╚════════════════════════════════════════════════════════════════╝
-
+      let skillsContent = `
 >> PRIMARY LANGUAGES
 `
 
@@ -69,10 +99,10 @@ improve.
         const percentage = ((bytes / total) * 100).toFixed(1)
         const barLength = Math.floor((bytes / total) * 30)
         const bar = '█'.repeat(barLength) + '░'.repeat(30 - barLength)
-        output += `\n   ${lang.padEnd(15)} [${bar}] ${percentage}%`
+        skillsContent += `\n   ${lang.padEnd(15)} [${bar}] ${percentage}%`
       })
 
-      output += `
+      skillsContent += `
 
 >> TECH STACK
    • Frontend: React, TypeScript, Tailwind CSS
@@ -80,7 +110,7 @@ improve.
    • Tools: Git, GitHub, VS Code, Docker
    • Practices: Agile, TDD, CI/CD, Code Review`
 
-      return output
+      return createBox('TECHNICAL SKILLS', skillsContent)
 
     case 'projects':
       if (!repoData || !repoData.repos || repoData.repos.length === 0) {
@@ -92,12 +122,10 @@ improve.
         .sort((a: any, b: any) => (b.stargazers_count || 0) - (a.stargazers_count || 0))
         .slice(0, 5)
 
-      let projectOutput = `╔════════════════════════════════════════════════════════════════╗
-║                      FEATURED PROJECTS                         ║
-╚════════════════════════════════════════════════════════════════╝`
+      let projectsContent = ''
 
       topRepos.forEach((repo: any, index: number) => {
-        projectOutput += `
+        projectsContent += `
 
 >> [${index + 1}] ${repo.name}
    ${repo.description || 'No description available'}
@@ -107,17 +135,14 @@ improve.
    URL: ${repo.html_url}`
       })
 
-      return projectOutput
+      return createBox('FEATURED PROJECTS', projectsContent)
 
     case 'stats':
       if (!repoData) {
         return 'Loading statistics...'
       }
 
-      return `╔════════════════════════════════════════════════════════════════╗
-║                      GITHUB STATISTICS                         ║
-╚════════════════════════════════════════════════════════════════╝
-
+      const statsContent = `
 >> REPOSITORY METRICS
    Total Repositories:     ${repoData.repos.length}
    Public Repos:           ${repoData.repos.filter((r: any) => !r.private).length}
@@ -135,11 +160,10 @@ improve.
 >> PROFILE
    GitHub: https://github.com/${userData?.login || 'username'}`
 
-    case 'contact':
-      return `╔════════════════════════════════════════════════════════════════╗
-║                      CONTACT INFORMATION                       ║
-╚════════════════════════════════════════════════════════════════╝
+      return createBox('GITHUB STATISTICS', statsContent)
 
+    case 'contact':
+      const contactContent = `
 >> CONNECT WITH ME
 
    GitHub:     https://github.com/${userData?.login || 'username'}
@@ -161,16 +185,17 @@ improve.
 Feel free to reach out! I'm always interested in connecting with
 fellow developers and working on exciting projects.`
 
+      return createBox('CONTACT INFORMATION', contactContent)
+
     case 'clear':
       return 'CLEAR'
 
     default:
-      return `╔════════════════════════════════════════════════════════════════╗
-║                          ERROR                                 ║
-╚════════════════════════════════════════════════════════════════╝
-
+      const errorContent = `
 Command not found: "${command}"
 
 Type 'help' to see available commands.`
+      
+      return createBox('ERROR', errorContent)
   }
 }

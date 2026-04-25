@@ -75,6 +75,9 @@ pre {
   letter-spacing: 0;
   font-feature-settings: normal;
   font-variant-ligatures: none;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  tab-size: 4;
 }
 
 .terminal-glow {
