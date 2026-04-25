@@ -34,11 +34,14 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
 
   useEffect(() => {
     if (!lines || lines.length === 0) {
+      const now = new Date()
+      const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
       const welcomeLines: TerminalLine[] = [
         {
           id: '0',
           type: 'output',
-          content: `Last login: ${new Date().toString()} on ttys001
+          content: `Last login: ${dateStr} ${timeStr} on ttys001
 ${userData?.login || 'guest'}@github.com:~$ type 'help' for available commands`,
           timestamp: Date.now(),
           animate: false
