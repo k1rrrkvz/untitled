@@ -15,17 +15,17 @@ export async function executeCommand(
   switch (cmd) {
     case 'help':
       return `
-╔════════════════════════════════════════════════════════════════╗
-║                      AVAILABLE COMMANDS                        ║
-╠════════════════════════════════════════════════════════════════╣
-║  help      - Show this help menu                              ║
-║  about     - Display developer bio and background             ║
-║  skills    - List technical skills and proficiencies          ║
-║  projects  - Show featured projects and repositories          ║
-║  stats     - Display GitHub statistics and metrics            ║
-║  contact   - Get contact information and social links         ║
-║  clear     - Clear terminal screen                            ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|                      AVAILABLE COMMANDS                        |
++================================================================+
+|  help      - Show this help menu                               |
+|  about     - Display developer bio and background              |
+|  skills    - List technical skills and proficiencies           |
+|  projects  - Show featured projects and repositories           |
+|  stats     - Display GitHub statistics and metrics             |
+|  contact   - Get contact information and social links          |
+|  clear     - Clear terminal screen                             |
++================================================================+
 
 TIP: Use arrow keys to navigate command history
 TIP: Press Tab to auto-complete commands
@@ -33,9 +33,9 @@ TIP: Press Tab to auto-complete commands
 
     case 'about':
       return `
-╔════════════════════════════════════════════════════════════════╗
-║                         ABOUT ME                               ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|                         ABOUT ME                               |
++================================================================+
 
 > Name: ${userData?.login || 'GitHub Developer'}
 > Role: Full-Stack Developer & Open Source Contributor
@@ -63,9 +63,9 @@ improve.
       const total = languages.reduce((sum, [, val]) => sum + val, 0)
 
       let output = `
-╔════════════════════════════════════════════════════════════════╗
-║                      TECHNICAL SKILLS                          ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|                      TECHNICAL SKILLS                          |
++================================================================+
 
 >> PRIMARY LANGUAGES
 `
@@ -98,9 +98,9 @@ improve.
         .slice(0, 5)
 
       let projectOutput = `
-╔════════════════════════════════════════════════════════════════╗
-║                      FEATURED PROJECTS                         ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|                      FEATURED PROJECTS                         |
++================================================================+
 `
 
       topRepos.forEach((repo: any, index: number) => {
@@ -122,9 +122,9 @@ improve.
       }
 
       return `
-╔════════════════════════════════════════════════════════════════╗
-║                      GITHUB STATISTICS                         ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|                      GITHUB STATISTICS                         |
++================================================================+
 
 >> REPOSITORY METRICS
    Total Repositories:     ${repoData.repos.length}
@@ -146,9 +146,9 @@ improve.
 
     case 'contact':
       return `
-╔════════════════════════════════════════════════════════════════╗
-║                      CONTACT INFORMATION                       ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|                      CONTACT INFORMATION                       |
++================================================================+
 
 >> CONNECT WITH ME
 
@@ -177,9 +177,9 @@ fellow developers and working on exciting projects.
 
     default:
       return `
-╔════════════════════════════════════════════════════════════════╗
-║                          ERROR                                 ║
-╚════════════════════════════════════════════════════════════════╝
++================================================================+
+|                          ERROR                                 |
++================================================================+
 
 Command not found: "${command}"
 

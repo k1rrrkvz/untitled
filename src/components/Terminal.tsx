@@ -38,25 +38,25 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
         {
           id: '0',
           type: 'output',
-          content: '╔══════════════════════════════════════════════════════════════╗',
+          content: '+================================================================+',
           timestamp: Date.now()
         },
         {
           id: '1',
           type: 'output',
-          content: '║  DEVELOPER TERMINAL v2.4.1                                  ║',
+          content: '|  DEVELOPER TERMINAL v2.4.1                                    |',
           timestamp: Date.now()
         },
         {
           id: '2',
           type: 'output',
-          content: '║  System initialized. Type "help" for available commands.   ║',
+          content: '|  System initialized. Type "help" for available commands.      |',
           timestamp: Date.now()
         },
         {
           id: '3',
           type: 'output',
-          content: '╚══════════════════════════════════════════════════════════════╝',
+          content: '+================================================================+',
           timestamp: Date.now()
         }
       ]
@@ -183,7 +183,7 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
             </div>
           )}
 
-          <ScrollArea className="flex-1 p-4 crt-flicker" ref={scrollRef}>
+          <div className="flex-1 overflow-y-auto p-4 crt-flicker" ref={scrollRef}>
             <div className="space-y-2 font-mono text-sm sm:text-base">
               {lines && lines.map((line) => (
                 <div key={line.id}>
@@ -203,29 +203,33 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
                   <span className="cursor-blink">▐</span> Loading data from GitHub...
                 </div>
               )}
-            </div>
-          </ScrollArea>
 
-          <div className="border-t border-primary/30 bg-card/50 p-4">
-            {suggestions.length > 0 && (
-              <div className="mb-2 text-xs text-muted-foreground">
-                Suggestions: {suggestions.join(', ')} (press Tab)
+              <div className="flex items-start gap-2">
+                <span className="text-accent terminal-glow">$</span>
+                <input
+                  ref={inputRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="flex-1 border-0 bg-transparent text-primary caret-transparent outline-none"
+                  autoFocus
+                  autoComplete="off"
+                  onSubmit={handleSubmit}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSubmit()
+                    }
+                  }}
+                />
+                <span className="cursor-blink text-accent terminal-glow">▐</span>
               </div>
-            )}
-            <form onSubmit={handleSubmit} className="flex items-center gap-2">
-              <span className="text-accent terminal-glow text-sm sm:text-base">$</span>
-              <Input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type 'help' for commands..."
-                className="flex-1 border-0 bg-transparent text-sm text-primary placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 sm:text-base"
-                autoFocus
-                autoComplete="off"
-              />
-              <span className="cursor-blink text-accent terminal-glow">▐</span>
-            </form>
+
+              {suggestions.length > 0 && (
+                <div className="text-xs text-muted-foreground pl-6">
+                  Suggestions: {suggestions.join(', ')} (press Tab)
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </Card>
