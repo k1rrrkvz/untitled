@@ -192,7 +192,7 @@ ${userData?.login || 'guest'}@github.com:~$ type 'help' for available commands`,
             onClick={() => inputRef.current?.focus()}
             style={{ minHeight: 0 }}
           >
-            <div className="font-mono text-sm leading-relaxed pb-4">
+            <div className="font-mono text-base md:text-lg leading-relaxed pb-4">
               {lines && lines.map((line) => (
                 <div key={line.id} className="mb-1">
                   {line.type === 'command' ? (
