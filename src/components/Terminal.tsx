@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, KeyboardEvent } from 'react'
-import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useKV } from '@github/spark/hooks'
 import { TerminalOutput } from './TerminalOutput'
@@ -147,96 +146,93 @@ ${userData?.login || 'guest'}@github.com:~$ type 'help' for available commands`,
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-background">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-background">
       <div className="scanlines" />
       
-      <Card className="relative h-full overflow-hidden border-none bg-background shadow-none rounded-none">
-        <div className="flex h-full flex-col">
-          <div className="border-b border-primary/20 bg-background px-4 py-2 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-[oklch(0.6_0.25_30)]"></div>
-              <div className="h-3 w-3 rounded-full bg-[oklch(0.7_0.3_80)]"></div>
-              <div className="h-3 w-3 rounded-full bg-[oklch(0.65_0.28_140)]"></div>
-              <span className="ml-4 text-xs text-muted-foreground font-mono">
-                {userData?.login || 'guest'}@github.com — spark-sh
-              </span>
-            </div>
-            {lastUpdate && (
-              <div className="text-xs text-muted-foreground font-mono">
-                {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-              </div>
-            )}
+      <div className="relative h-full w-full flex flex-col overflow-hidden">
+        <div className="border-b border-primary/20 bg-background px-4 py-2 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-[oklch(0.6_0.25_30)]"></div>
+            <div className="h-3 w-3 rounded-full bg-[oklch(0.7_0.3_80)]"></div>
+            <div className="h-3 w-3 rounded-full bg-[oklch(0.65_0.28_140)]"></div>
+            <span className="ml-4 text-xs text-muted-foreground font-mono">
+              {userData?.login || 'guest'}@github.com — spark-sh
+            </span>
           </div>
-
-          {isMobile && (
-            <div className="border-b border-primary/20 bg-background p-2">
-              <div className="grid grid-cols-3 gap-1">
-                {commands.slice(0, 6).map(cmd => (
-                  <Button
-                    key={cmd}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => quickCommand(cmd)}
-                    className="h-7 text-xs font-mono text-foreground hover:bg-primary/10 hover:text-primary"
-                  >
-                    {cmd}
-                  </Button>
-                ))}
-              </div>
+          {lastUpdate && (
+            <div className="text-xs text-muted-foreground font-mono">
+              {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </div>
           )}
+        </div>
 
-          <div 
-            className="flex-1 overflow-y-auto overflow-x-hidden p-4 crt-flicker cursor-text" 
-            ref={scrollRef}
-            onClick={() => inputRef.current?.focus()}
-            style={{ minHeight: 0 }}
-          >
-            <div className="font-mono text-base md:text-lg leading-relaxed pb-4">
-              {lines && lines.map((line) => (
-                <div key={line.id} className="mb-1">
-                  {line.type === 'command' ? (
-                    <div className="flex items-start">
-                      <span className="text-accent terminal-glow select-none">{line.prompt} </span>
-                      <span className="text-foreground">{line.content}</span>
-                    </div>
-                  ) : (
-                    <TerminalOutput content={line.content} animate={line.animate} />
-                  )}
-                </div>
+        {isMobile && (
+          <div className="border-b border-primary/20 bg-background p-2 flex-shrink-0">
+            <div className="grid grid-cols-3 gap-1">
+              {commands.slice(0, 6).map(cmd => (
+                <Button
+                  key={cmd}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => quickCommand(cmd)}
+                  className="h-7 text-xs font-mono text-foreground hover:bg-primary/10 hover:text-primary"
+                >
+                  {cmd}
+                </Button>
               ))}
-              
-              {loading && !userData && (
-                <div className="text-muted-foreground mb-1">
-                  Fetching GitHub data...
-                </div>
-              )}
-
-              <div className="flex items-start">
-                <span className="text-accent terminal-glow select-none">{userData?.login || 'guest'}@github.com:~$ </span>
-                <div className="flex-1 relative">
-                  <span className="text-foreground">{input}</span>
-                  <span className="cursor-blink text-accent terminal-glow inline-block">▐</span>
-                </div>
-              </div>
-              <input
-                ref={inputRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="sr-only"
-                autoFocus
-                autoComplete="off"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSubmit()
-                  }
-                }}
-              />
             </div>
           </div>
+        )}
+
+        <div 
+          className="flex-1 overflow-y-auto overflow-x-hidden p-4 crt-flicker cursor-text" 
+          ref={scrollRef}
+          onClick={() => inputRef.current?.focus()}
+        >
+          <div className="font-mono text-base md:text-lg leading-relaxed min-h-full">
+            {lines && lines.map((line) => (
+              <div key={line.id} className="mb-1">
+                {line.type === 'command' ? (
+                  <div className="flex items-start">
+                    <span className="text-accent terminal-glow select-none">{line.prompt} </span>
+                    <span className="text-foreground">{line.content}</span>
+                  </div>
+                ) : (
+                  <TerminalOutput content={line.content} animate={line.animate} />
+                )}
+              </div>
+            ))}
+            
+            {loading && !userData && (
+              <div className="text-muted-foreground mb-1">
+                Fetching GitHub data...
+              </div>
+            )}
+
+            <div className="flex items-start">
+              <span className="text-accent terminal-glow select-none">{userData?.login || 'guest'}@github.com:~$ </span>
+              <div className="flex-1 relative">
+                <span className="text-foreground">{input}</span>
+                <span className="cursor-blink text-accent terminal-glow inline-block">▐</span>
+              </div>
+            </div>
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="sr-only"
+              autoFocus
+              autoComplete="off"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSubmit()
+                }
+              }}
+            />
+          </div>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }
