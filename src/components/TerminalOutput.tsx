@@ -24,15 +24,9 @@ export function TerminalOutput({ content, animate = false }: TerminalOutputProps
     }
   }, [content, animate])
 
-  const lines = (animate ? displayedContent : content).split('\n')
-
   return (
-    <div className="whitespace-pre-wrap font-mono text-foreground">
-      {lines.map((line, i) => (
-        <div key={i} className="leading-relaxed">
-          {line || ' '}
-        </div>
-      ))}
-    </div>
+    <pre className="font-mono text-foreground whitespace-pre overflow-x-auto">
+      {animate ? displayedContent : content}
+    </pre>
   )
 }

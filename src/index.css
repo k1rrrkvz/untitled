@@ -67,7 +67,14 @@
 
 body {
   font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
+}
+
+pre {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0;
+  font-feature-settings: normal;
+  font-variant-ligatures: none;
 }
 
 .terminal-glow {
