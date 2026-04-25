@@ -5,26 +5,44 @@ interface RepoData {
   totalForks: number
 }
 
-function padLine(line: string, width: number): string {
-  const actualLength = [...line].length
-  if (actualLength > width) {
-    return [...line].slice(0, width).join('')
+function getVisualLength(str: string): number {
+  let length = 0
+  for (const char of str) {
+    length++
   }
-  return line + ' '.repeat(width - actualLength)
+  return length
+}
+
+function padLine(line: string, width: number): string {
+  const visualLength = getVisualLength(line)
+  
+  if (visualLength > width) {
+    let result = ''
+    let count = 0
+    for (const char of line) {
+      if (count >= width) break
+      result += char
+      count++
+    }
+    return result
+  }
+  
+  const spacesNeeded = width - visualLength
+  return line + ' '.repeat(spacesNeeded)
 }
 
 function createBox(title: string, content: string): string {
   const width = 64
-  const line = '─'.repeat(width)
-  const topBorder = `┌${line}┐`
-  const bottomBorder = `└${line}┘`
+  const topBorder = '┌' + '─'.repeat(width) + '┐'
+  const bottomBorder = '└' + '─'.repeat(width) + '┘'
   
-  const titlePadLeft = Math.floor((width - title.length) / 2)
-  const titlePadRight = width - title.length - titlePadLeft
-  const titleLine = `│${' '.repeat(titlePadLeft)}${title}${' '.repeat(titlePadRight)}│`
+  const titleLen = getVisualLength(title)
+  const titlePadLeft = Math.floor((width - titleLen) / 2)
+  const titlePadRight = width - titleLen - titlePadLeft
+  const titleLine = '│' + ' '.repeat(titlePadLeft) + title + ' '.repeat(titlePadRight) + '│'
   
   const contentLines = content.split('\n').map(line => {
-    return `│${padLine(line, width)}│`
+    return '│' + padLine(line, width) + '│'
   }).join('\n')
   
   return `${topBorder}\n${titleLine}\n${bottomBorder}\n${contentLines}`
@@ -32,18 +50,17 @@ function createBox(title: string, content: string): string {
 
 function createBoxWithDivider(title: string, content: string): string {
   const width = 64
-  const line = '─'.repeat(width)
-  const divider = '─'.repeat(width)
-  const topBorder = `┌${line}┐`
-  const bottomBorder = `└${line}┘`
-  const middleDivider = `├${divider}┤`
+  const topBorder = '┌' + '─'.repeat(width) + '┐'
+  const bottomBorder = '└' + '─'.repeat(width) + '┘'
+  const middleDivider = '├' + '─'.repeat(width) + '┤'
   
-  const titlePadLeft = Math.floor((width - title.length) / 2)
-  const titlePadRight = width - title.length - titlePadLeft
-  const titleLine = `│${' '.repeat(titlePadLeft)}${title}${' '.repeat(titlePadRight)}│`
+  const titleLen = getVisualLength(title)
+  const titlePadLeft = Math.floor((width - titleLen) / 2)
+  const titlePadRight = width - titleLen - titlePadLeft
+  const titleLine = '│' + ' '.repeat(titlePadLeft) + title + ' '.repeat(titlePadRight) + '│'
   
   const contentLines = content.split('\n').map(line => {
-    return `│${padLine(line, width)}│`
+    return '│' + padLine(line, width) + '│'
   }).join('\n')
   
   return `${topBorder}\n${titleLine}\n${middleDivider}\n${contentLines}\n${bottomBorder}`
