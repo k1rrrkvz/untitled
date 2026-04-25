@@ -38,25 +38,7 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
         {
           id: '0',
           type: 'output',
-          content: '+================================================================+',
-          timestamp: Date.now()
-        },
-        {
-          id: '1',
-          type: 'output',
-          content: '|  DEVELOPER TERMINAL v2.4.1                                    |',
-          timestamp: Date.now()
-        },
-        {
-          id: '2',
-          type: 'output',
-          content: '|  System initialized. Type "help" for available commands.      |',
-          timestamp: Date.now()
-        },
-        {
-          id: '3',
-          type: 'output',
-          content: '+================================================================+',
+          content: '╔════════════════════════════════════════════════════════════════╗\n║  DEVELOPER TERMINAL v2.4.1                                     ║\n║  System initialized. Type "help" for available commands.       ║\n╚════════════════════════════════════════════════════════════════╝',
           timestamp: Date.now()
         }
       ]
@@ -206,22 +188,24 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
 
               <div className="flex items-start gap-2">
                 <span className="text-accent terminal-glow">$</span>
-                <input
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="flex-1 border-0 bg-transparent text-primary caret-transparent outline-none"
-                  autoFocus
-                  autoComplete="off"
-                  onSubmit={handleSubmit}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSubmit()
-                    }
-                  }}
-                />
-                <span className="cursor-blink text-accent terminal-glow">▐</span>
+                <div className="flex-1 relative">
+                  <span className="text-primary">{input}</span>
+                  <span className="cursor-blink text-accent terminal-glow">▐</span>
+                  <input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="absolute inset-0 opacity-0 w-full h-full cursor-default"
+                    autoFocus
+                    autoComplete="off"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSubmit()
+                      }
+                    }}
+                  />
+                </div>
               </div>
 
               {suggestions.length > 0 && (
