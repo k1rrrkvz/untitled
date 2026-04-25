@@ -39,10 +39,10 @@ function createBox(title: string, content: string): string {
   const titleLen = getVisualLength(title)
   const titlePadLeft = Math.floor((width - titleLen) / 2)
   const titlePadRight = width - titleLen - titlePadLeft
-  const titleLine = '│' + ' '.repeat(titlePadLeft) + title + ' '.repeat(titlePadRight) + '│'
+  const titleLine = ' '.repeat(titlePadLeft) + title + ' '.repeat(titlePadRight)
   
   const contentLines = content.split('\n').map(line => {
-    return '│' + padLine(line, width) + '│'
+    return padLine(line, width)
   }).join('\n')
   
   return `${topBorder}\n${titleLine}\n${bottomBorder}\n${contentLines}`
@@ -57,10 +57,10 @@ function createBoxWithDivider(title: string, content: string): string {
   const titleLen = getVisualLength(title)
   const titlePadLeft = Math.floor((width - titleLen) / 2)
   const titlePadRight = width - titleLen - titlePadLeft
-  const titleLine = '│' + ' '.repeat(titlePadLeft) + title + ' '.repeat(titlePadRight) + '│'
+  const titleLine = ' '.repeat(titlePadLeft) + title + ' '.repeat(titlePadRight)
   
   const contentLines = content.split('\n').map(line => {
-    return '│' + padLine(line, width) + '│'
+    return padLine(line, width)
   }).join('\n')
   
   return `${topBorder}\n${titleLine}\n${middleDivider}\n${contentLines}\n${bottomBorder}`
