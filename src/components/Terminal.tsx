@@ -20,9 +20,10 @@ interface TerminalProps {
   userData: any
   repoData: any
   loading: boolean
+  lastUpdate: Date | null
 }
 
-export function Terminal({ userData, repoData, loading }: TerminalProps) {
+export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalProps) {
   const [input, setInput] = useState('')
   const [lines, setLines] = useKV<TerminalLine[]>('terminal-history', [])
   const [historyIndex, setHistoryIndex] = useState(-1)
@@ -141,13 +142,20 @@ export function Terminal({ userData, repoData, loading }: TerminalProps) {
       <Card className="relative h-full overflow-hidden border-2 border-primary/30 bg-card shadow-[0_0_30px_rgba(255,0,0,0.15)]">
         <div className="flex h-full flex-col">
           <div className="border-b border-primary/30 bg-card/50 px-4 py-2">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-destructive"></div>
-              <div className="h-3 w-3 rounded-full bg-secondary"></div>
-              <div className="h-3 w-3 rounded-full bg-accent"></div>
-              <span className="ml-4 text-sm text-muted-foreground">
-                {userData ? `${userData.login}@github` : 'guest@terminal'} ~ %
-              </span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-destructive"></div>
+                <div className="h-3 w-3 rounded-full bg-secondary"></div>
+                <div className="h-3 w-3 rounded-full bg-accent"></div>
+                <span className="ml-4 text-sm text-muted-foreground">
+                  {userData ? `${userData.login}@github` : 'guest@terminal'} ~ %
+                </span>
+              </div>
+              {lastUpdate && (
+                <div className="text-xs text-muted-foreground">
+                  Updated: {lastUpdate.toLocaleTimeString()}
+                </div>
+              )}
             </div>
           </div>
 

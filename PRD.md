@@ -13,11 +13,11 @@ This is a portfolio showcase with interactive terminal commands, GitHub API inte
 ## Essential Features
 
 ### GitHub Repository Analysis
-- **Functionality**: Fetches and analyzes user's GitHub repositories to extract languages, technologies, commit patterns, and project descriptions
-- **Purpose**: Automatically generates portfolio content based on actual work, showcasing real expertise
-- **Trigger**: On app load, fetches data for the authenticated GitHub user
-- **Progression**: Load app → Authenticate with spark.user() → Fetch repos via GitHub API → Analyze languages/topics → Display in terminal format
-- **Success criteria**: Displays accurate repo count, top languages, recent projects, and contribution stats
+- **Functionality**: Fetches and analyzes user's GitHub repositories to extract languages, technologies, commit patterns, and project descriptions. Automatically refreshes data every 5 minutes.
+- **Purpose**: Automatically generates portfolio content based on actual work, showcasing real expertise with up-to-date information
+- **Trigger**: On app load, fetches data for the authenticated GitHub user, then refreshes every 5 minutes automatically
+- **Progression**: Load app → Authenticate with spark.user() → Fetch repos via GitHub API → Analyze languages/topics → Display in terminal format → Auto-refresh every 5 minutes with toast notification
+- **Success criteria**: Displays accurate repo count, top languages, recent projects, and contribution stats. Shows last update timestamp in header. Displays success/error toast on refresh.
 
 ### Interactive Terminal Commands
 - **Functionality**: Users can type commands like `about`, `skills`, `projects`, `contact`, `help` to navigate
