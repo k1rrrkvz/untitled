@@ -177,7 +177,11 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
             </div>
           )}
 
-          <div className="flex-1 overflow-y-auto p-4 crt-flicker" ref={scrollRef}>
+          <div 
+            className="flex-1 overflow-y-auto p-4 crt-flicker cursor-text" 
+            ref={scrollRef}
+            onClick={() => inputRef.current?.focus()}
+          >
             <div className="space-y-2 font-mono text-sm sm:text-base">
               {lines && lines.map((line) => (
                 <div key={line.id}>
@@ -200,25 +204,25 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
 
               <div className="flex items-start gap-2">
                 <span className="text-accent terminal-glow">$</span>
-                <div className="flex-1 relative">
+                <div className="flex-1 relative" onClick={() => inputRef.current?.focus()}>
                   <span className="text-primary">{input}</span>
                   <span className="cursor-blink text-accent terminal-glow">▐</span>
-                  <input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    className="absolute inset-0 opacity-0 w-full h-full cursor-default"
-                    autoFocus
-                    autoComplete="off"
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSubmit()
-                      }
-                    }}
-                  />
                 </div>
               </div>
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="sr-only"
+                autoFocus
+                autoComplete="off"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSubmit()
+                  }
+                }}
+              />
 
               {suggestions.length > 0 && (
                 <div className="text-xs text-muted-foreground pl-6">
