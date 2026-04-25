@@ -38,7 +38,7 @@ export function TerminalOutput({ content, animate = true, typingSpeed = 2 }: Ter
 
   return (
     <div className="relative">
-      <pre className="font-mono text-foreground whitespace-pre overflow-x-auto">
+      <pre className="font-mono text-foreground whitespace-pre overflow-x-auto" style={{ fontVariantLigatures: 'none', fontFeatureSettings: 'normal' }}>
         {displayedContent}
         {isTyping && <span className="cursor-blink text-accent terminal-glow">▐</span>}
       </pre>

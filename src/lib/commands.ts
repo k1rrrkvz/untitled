@@ -5,18 +5,26 @@ interface RepoData {
   totalForks: number
 }
 
+function padLine(line: string, width: number): string {
+  const actualLength = [...line].length
+  if (actualLength > width) {
+    return [...line].slice(0, width).join('')
+  }
+  return line + ' '.repeat(width - actualLength)
+}
+
 function createBox(title: string, content: string): string {
   const width = 64
   const line = '─'.repeat(width)
   const topBorder = `┌${line}┐`
   const bottomBorder = `└${line}┘`
-  const titleLine = `│${title.padStart((width + title.length) / 2).padEnd(width)}│`
+  
+  const titlePadLeft = Math.floor((width - title.length) / 2)
+  const titlePadRight = width - title.length - titlePadLeft
+  const titleLine = `│${' '.repeat(titlePadLeft)}${title}${' '.repeat(titlePadRight)}│`
   
   const contentLines = content.split('\n').map(line => {
-    if (line.length > width) {
-      return `│${line.substring(0, width)}│`
-    }
-    return `│${line.padEnd(width)}│`
+    return `│${padLine(line, width)}│`
   }).join('\n')
   
   return `${topBorder}\n${titleLine}\n${bottomBorder}\n${contentLines}`
@@ -29,13 +37,13 @@ function createBoxWithDivider(title: string, content: string): string {
   const topBorder = `┌${line}┐`
   const bottomBorder = `└${line}┘`
   const middleDivider = `├${divider}┤`
-  const titleLine = `│${title.padStart((width + title.length) / 2).padEnd(width)}│`
+  
+  const titlePadLeft = Math.floor((width - title.length) / 2)
+  const titlePadRight = width - title.length - titlePadLeft
+  const titleLine = `│${' '.repeat(titlePadLeft)}${title}${' '.repeat(titlePadRight)}│`
   
   const contentLines = content.split('\n').map(line => {
-    if (line.length > width) {
-      return `│${line.substring(0, width)}│`
-    }
-    return `│${line.padEnd(width)}│`
+    return `│${padLine(line, width)}│`
   }).join('\n')
   
   return `${topBorder}\n${titleLine}\n${middleDivider}\n${contentLines}\n${bottomBorder}`
