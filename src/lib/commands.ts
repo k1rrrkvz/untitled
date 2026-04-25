@@ -217,8 +217,11 @@ export async function executeCommand(
     case 'whoami':
       return userData?.login || 'guest'
 
-    case 'date':
-      return new Date().toString()
+    case 'date': {
+      const now = new Date()
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+      return `${now.toLocaleString()} ${timeZone}`
+    }
 
     case 'echo':
       return args.join(' ')

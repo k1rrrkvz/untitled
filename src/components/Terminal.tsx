@@ -160,7 +160,7 @@ ${userData?.login || 'guest'}@github.com:~$ type 'help' for available commands`,
             </div>
             {lastUpdate && (
               <div className="text-xs text-muted-foreground font-mono">
-                {lastUpdate.toLocaleTimeString()}
+                {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </div>
             )}
           </div>
