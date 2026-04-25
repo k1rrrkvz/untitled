@@ -27,11 +27,11 @@ This is a portfolio showcase with interactive terminal commands, GitHub API inte
 - **Success criteria**: All commands respond correctly, invalid commands show helpful error messages
 
 ### Command History
-- **Functionality**: Stores and displays previous commands, supports arrow key navigation through history
-- **Purpose**: Mimics real terminal behavior, improves UX for repeated commands
-- **Trigger**: Any command execution adds to history, up/down arrows navigate
-- **Progression**: Execute command → Store in KV → Display in terminal scrollback → Navigate with arrow keys
-- **Success criteria**: History persists across sessions, arrow keys cycle through previous commands
+- **Functionality**: Stores and displays previous commands with full session persistence, supports arrow key navigation through history
+- **Purpose**: Mimics real terminal behavior with authentic session persistence, improves UX for repeated commands, maintains continuity across page refreshes and browser sessions
+- **Trigger**: Any command execution adds to history, up/down arrows navigate, session initialization preserves previous history
+- **Progression**: Execute command → Store in KV with useKV hook → Display in terminal scrollback → Navigate with arrow keys → Persist across sessions → Restore on next visit
+- **Success criteria**: History persists indefinitely across sessions and browser restarts, arrow keys cycle through all previous commands from all sessions, session initialization flag prevents duplicate welcome messages
 
 ### Auto-Complete Suggestions
 - **Functionality**: Shows available commands as user types, tab to complete

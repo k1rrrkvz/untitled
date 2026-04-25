@@ -25,6 +25,7 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
   const [input, setInput] = useState('')
   const [lines, setLines] = useKV<TerminalLine[]>('terminal-history', [])
   const [historyIndex, setHistoryIndex] = useState(-1)
+  const [sessionInitialized, setSessionInitialized] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const isMobile = useIsMobile()
@@ -32,23 +33,26 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
   const commands = ['ls', 'cd', 'pwd', 'cat', 'help', 'clear', 'whoami', 'date', 'stats', 'neofetch']
 
   useEffect(() => {
-    if (!lines || lines.length === 0) {
-      const now = new Date()
-      const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-      const welcomeLines: TerminalLine[] = [
-        {
-          id: '0',
-          type: 'output',
-          content: `Last login: ${dateStr} ${timeStr} on ttys001
+    if (!sessionInitialized && userData) {
+      if (!lines || lines.length === 0) {
+        const now = new Date()
+        const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+        const welcomeLines: TerminalLine[] = [
+          {
+            id: '0',
+            type: 'output',
+            content: `Last login: ${dateStr} ${timeStr} on ttys001
 ${userData?.login || 'guest'}@github.com:~$ type 'help' for available commands`,
-          timestamp: Date.now(),
-          animate: false
-        }
-      ]
-      setLines(welcomeLines)
+            timestamp: Date.now(),
+            animate: false
+          }
+        ]
+        setLines(welcomeLines)
+      }
+      setSessionInitialized(true)
     }
-  }, [userData])
+  }, [userData, lines, sessionInitialized, setLines])
 
   useEffect(() => {
     scrollToBottom()
