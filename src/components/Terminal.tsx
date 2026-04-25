@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef, KeyboardEvent } from 'react'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
 import { useKV } from '@github/spark/hooks'
 import { TerminalOutput } from './TerminalOutput'
@@ -10,10 +8,11 @@ import { useIsMobile } from '@/hooks/use-mobile'
 
 interface TerminalLine {
   id: string
-  type: 'command' | 'output'
+  type: 'command' | 'output' | 'prompt'
   content: string
   timestamp: number
   animate?: boolean
+  prompt?: string
 }
 
 interface TerminalProps {
@@ -27,12 +26,11 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
   const [input, setInput] = useState('')
   const [lines, setLines] = useKV<TerminalLine[]>('terminal-history', [])
   const [historyIndex, setHistoryIndex] = useState(-1)
-  const [suggestions, setSuggestions] = useState<string[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const isMobile = useIsMobile()
 
-  const commands = ['help', 'about', 'skills', 'projects', 'stats', 'contact', 'clear']
+  const commands = ['ls', 'cd', 'pwd', 'cat', 'help', 'clear', 'whoami', 'date', 'stats', 'neofetch']
 
   useEffect(() => {
     if (!lines || lines.length === 0) {
@@ -40,44 +38,41 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
         {
           id: '0',
           type: 'output',
-          content: '┌────────────────────────────────────────────────────────────────┐\n  DEVELOPER TERMINAL v2.4.1                                     \n  System initialized. Type "help" for available commands.       \n└────────────────────────────────────────────────────────────────┘',
+          content: `Last login: ${new Date().toString()} on ttys001
+${userData?.login || 'guest'}@github.com:~$ type 'help' for available commands`,
           timestamp: Date.now(),
           animate: false
         }
       ]
       setLines(welcomeLines)
     }
-  }, [])
+  }, [userData])
 
   useEffect(() => {
     scrollToBottom()
   }, [lines])
 
-  useEffect(() => {
-    if (input) {
-      const matches = commands.filter(cmd => cmd.startsWith(input.toLowerCase()))
-      setSuggestions(matches)
-    } else {
-      setSuggestions([])
-    }
-  }, [input])
-
   const scrollToBottom = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      setTimeout(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
+      }, 0)
     }
   }
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() && input !== '') return
 
     const commandLine: TerminalLine = {
       id: Date.now().toString(),
       type: 'command',
       content: input,
       timestamp: Date.now(),
-      animate: false
+      animate: false,
+      prompt: `${userData?.login || 'guest'}@github.com:~$`
     }
 
     setLines(current => current ? [...current, commandLine] : [commandLine])
@@ -86,20 +81,19 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
     
     if (result === 'CLEAR') {
       setLines([])
-    } else {
+    } else if (result) {
       const outputLine: TerminalLine = {
         id: (Date.now() + 1).toString(),
         type: 'output',
         content: result,
         timestamp: Date.now(),
-        animate: true
+        animate: false
       }
       setLines(current => current ? [...current, outputLine] : [outputLine])
     }
 
     setInput('')
     setHistoryIndex(-1)
-    setSuggestions([])
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -122,10 +116,24 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
         setHistoryIndex(-1)
         setInput('')
       }
-    } else if (e.key === 'Tab' && suggestions.length > 0) {
+    } else if (e.key === 'Tab') {
       e.preventDefault()
-      setInput(suggestions[0])
-      setSuggestions([])
+      const matches = commands.filter(cmd => cmd.startsWith(input.toLowerCase()))
+      if (matches.length === 1) {
+        setInput(matches[0])
+      } else if (matches.length > 1) {
+        const outputLine: TerminalLine = {
+          id: Date.now().toString(),
+          type: 'output',
+          content: matches.join('  '),
+          timestamp: Date.now(),
+          animate: false
+        }
+        setLines(current => current ? [...current, outputLine] : [outputLine])
+      }
+    } else if (e.key === 'l' && e.ctrlKey) {
+      e.preventDefault()
+      setLines([])
     }
   }
 
@@ -136,41 +144,39 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-background p-2 sm:p-4">
+    <div className="relative h-screen w-full overflow-hidden bg-background">
       <div className="scanlines" />
       
-      <Card className="relative h-full overflow-hidden border-2 border-primary/30 bg-card shadow-[0_0_30px_rgba(255,0,0,0.15)]">
+      <Card className="relative h-full overflow-hidden border-none bg-background shadow-none rounded-none">
         <div className="flex h-full flex-col">
-          <div className="border-b border-primary/30 bg-card/50 px-4 py-2">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-destructive"></div>
-                <div className="h-3 w-3 rounded-full bg-secondary"></div>
-                <div className="h-3 w-3 rounded-full bg-accent"></div>
-                <span className="ml-4 text-sm text-muted-foreground">
-                  {userData ? `${userData.login}@github` : 'guest@terminal'} ~ %
-                </span>
-              </div>
-              {lastUpdate && (
-                <div className="text-xs text-muted-foreground">
-                  Updated: {lastUpdate.toLocaleTimeString()}
-                </div>
-              )}
+          <div className="border-b border-primary/20 bg-background px-4 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-[oklch(0.6_0.25_30)]"></div>
+              <div className="h-3 w-3 rounded-full bg-[oklch(0.7_0.3_80)]"></div>
+              <div className="h-3 w-3 rounded-full bg-[oklch(0.65_0.28_140)]"></div>
+              <span className="ml-4 text-xs text-muted-foreground font-mono">
+                {userData?.login || 'guest'}@github.com — spark-sh
+              </span>
             </div>
+            {lastUpdate && (
+              <div className="text-xs text-muted-foreground font-mono">
+                {lastUpdate.toLocaleTimeString()}
+              </div>
+            )}
           </div>
 
           {isMobile && (
-            <div className="border-b border-primary/30 bg-card/30 p-2">
-              <div className="grid grid-cols-2 gap-2">
+            <div className="border-b border-primary/20 bg-background p-2">
+              <div className="grid grid-cols-3 gap-1">
                 {commands.slice(0, 6).map(cmd => (
                   <Button
                     key={cmd}
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => quickCommand(cmd)}
-                    className="border-primary/50 bg-background/50 text-xs text-foreground hover:bg-primary/20"
+                    className="h-7 text-xs font-mono text-foreground hover:bg-primary/10 hover:text-primary"
                   >
-                    [ {cmd} ]
+                    {cmd}
                   </Button>
                 ))}
               </div>
@@ -178,17 +184,18 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
           )}
 
           <div 
-            className="flex-1 overflow-y-auto overflow-x-hidden p-4 crt-flicker cursor-text min-h-0" 
+            className="flex-1 overflow-y-auto overflow-x-hidden p-4 crt-flicker cursor-text" 
             ref={scrollRef}
             onClick={() => inputRef.current?.focus()}
+            style={{ minHeight: 0 }}
           >
-            <div className="space-y-2 font-mono text-sm sm:text-base min-h-full">
+            <div className="font-mono text-sm leading-relaxed pb-4">
               {lines && lines.map((line) => (
-                <div key={line.id}>
+                <div key={line.id} className="mb-1">
                   {line.type === 'command' ? (
-                    <div className="flex items-start gap-2">
-                      <span className="text-accent terminal-glow">$</span>
-                      <span className="text-primary">{line.content}</span>
+                    <div className="flex items-start">
+                      <span className="text-accent terminal-glow select-none">{line.prompt} </span>
+                      <span className="text-foreground">{line.content}</span>
                     </div>
                   ) : (
                     <TerminalOutput content={line.content} animate={line.animate} />
@@ -196,17 +203,17 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
                 </div>
               ))}
               
-              {loading && (
-                <div className="text-secondary">
-                  <span className="cursor-blink">▐</span> Loading data from GitHub...
+              {loading && !userData && (
+                <div className="text-muted-foreground mb-1">
+                  Fetching GitHub data...
                 </div>
               )}
 
-              <div className="flex items-start gap-2">
-                <span className="text-accent terminal-glow">$</span>
-                <div className="flex-1 relative" onClick={() => inputRef.current?.focus()}>
-                  <span className="text-primary">{input}</span>
-                  <span className="cursor-blink text-accent terminal-glow">▐</span>
+              <div className="flex items-start">
+                <span className="text-accent terminal-glow select-none">{userData?.login || 'guest'}@github.com:~$ </span>
+                <div className="flex-1 relative">
+                  <span className="text-foreground">{input}</span>
+                  <span className="cursor-blink text-accent terminal-glow inline-block">▐</span>
                 </div>
               </div>
               <input
@@ -223,12 +230,6 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
                   }
                 }}
               />
-
-              {suggestions.length > 0 && (
-                <div className="text-xs text-muted-foreground pl-6">
-                  Suggestions: {suggestions.join(', ')} (press Tab)
-                </div>
-              )}
             </div>
           </div>
         </div>

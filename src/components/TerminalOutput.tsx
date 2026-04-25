@@ -3,45 +3,40 @@ import { useEffect, useState } from 'react'
 interface TerminalOutputProps {
   content: string
   animate?: boolean
-  typingSpeed?: number
 }
 
-export function TerminalOutput({ content, animate = true, typingSpeed = 2 }: TerminalOutputProps) {
-  const [displayedContent, setDisplayedContent] = useState(animate ? '' : content)
-  const [isTyping, setIsTyping] = useState(animate)
+export function TerminalOutput({ content, animate = false }: TerminalOutputProps) {
+  const [displayedContent, setDisplayedContent] = useState(content)
   
   useEffect(() => {
-    if (animate && content) {
-      setIsTyping(true)
-      setDisplayedContent('')
-      
-      let index = 0
-      const interval = setInterval(() => {
-        if (index < content.length) {
-          setDisplayedContent(content.slice(0, index + 1))
-          index++
-        } else {
-          clearInterval(interval)
-          setIsTyping(false)
-        }
-      }, typingSpeed)
-      
-      return () => {
-        clearInterval(interval)
-        setIsTyping(false)
+    setDisplayedContent(content)
+  }, [content])
+
+  const renderContent = () => {
+    const parts = displayedContent.split(/(\x1b\[[0-9;]*m)/g)
+    let currentColor = ''
+    
+    return parts.map((part, index) => {
+      if (part.match(/\x1b\[34m/)) {
+        currentColor = 'text-[oklch(0.6_0.25_240)]'
+        return null
+      } else if (part.match(/\x1b\[0m/)) {
+        currentColor = ''
+        return null
+      } else if (part) {
+        return (
+          <span key={index} className={currentColor}>
+            {part}
+          </span>
+        )
       }
-    } else {
-      setDisplayedContent(content)
-      setIsTyping(false)
-    }
-  }, [content, animate, typingSpeed])
+      return null
+    })
+  }
 
   return (
-    <div className="relative">
-      <pre className="font-mono text-foreground whitespace-pre overflow-x-auto" style={{ fontVariantLigatures: 'none', fontFeatureSettings: 'normal' }}>
-        {displayedContent}
-        {isTyping && <span className="cursor-blink text-accent terminal-glow">▐</span>}
-      </pre>
-    </div>
+    <pre className="font-mono text-foreground whitespace-pre-wrap break-words" style={{ fontVariantLigatures: 'none', fontFeatureSettings: 'normal' }}>
+      {renderContent()}
+    </pre>
   )
 }

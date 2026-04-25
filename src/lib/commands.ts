@@ -5,65 +5,145 @@ interface RepoData {
   totalForks: number
 }
 
-function getVisualLength(str: string): number {
-  let length = 0
-  for (const char of str) {
-    length++
+interface FileSystem {
+  [key: string]: {
+    type: 'file' | 'directory'
+    content?: string
+    children?: FileSystem
   }
-  return length
 }
 
-function padLine(line: string, width: number): string {
-  const visualLength = getVisualLength(line)
+let currentPath = '~'
+
+function createFileSystem(userData: any, repoData: RepoData | null): FileSystem {
+  const repos = repoData?.repos || []
+  const projectsDir: FileSystem = {}
   
-  if (visualLength > width) {
-    let result = ''
-    let count = 0
-    for (const char of line) {
-      if (count >= width) break
-      result += char
-      count++
+  repos.slice(0, 10).forEach((repo: any) => {
+    projectsDir[repo.name] = {
+      type: 'file',
+      content: `Name: ${repo.name}
+Description: ${repo.description || 'No description'}
+Language: ${repo.language || 'Unknown'}
+Stars: ${repo.stargazers_count || 0}
+Forks: ${repo.forks_count || 0}
+URL: ${repo.html_url}
+Updated: ${new Date(repo.updated_at).toLocaleDateString()}`
     }
-    return result
+  })
+
+  const languages = Object.entries(repoData?.languages || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+  
+  let skillsContent = `TECHNICAL SKILLS AND LANGUAGES\n${'='.repeat(50)}\n\n`
+  languages.forEach(([lang, bytes]) => {
+    const total = Object.values(repoData?.languages || {}).reduce((a, b) => a + b, 0)
+    const percentage = ((bytes / total) * 100).toFixed(1)
+    skillsContent += `${lang.padEnd(20)} ${percentage}%\n`
+  })
+
+  return {
+    '~': {
+      type: 'directory',
+      children: {
+        'about.txt': {
+          type: 'file',
+          content: `ABOUT ${userData?.login?.toUpperCase() || 'DEVELOPER'}
+${'='.repeat(50)}
+
+Name: ${userData?.login || 'GitHub Developer'}
+Profile: https://github.com/${userData?.login || 'username'}
+Bio: ${userData?.bio || 'Developer and open source contributor'}
+
+${userData?.email ? `Email: ${userData.email}\n` : ''}
+Location: Remote / Global
+Role: Full-Stack Developer & Open Source Contributor
+
+I specialize in building elegant web applications with clean
+architecture and strong attention to detail. Always learning
+and contributing to the open source community.`
+        },
+        'skills.txt': {
+          type: 'file',
+          content: skillsContent
+        },
+        'contact.txt': {
+          type: 'file',
+          content: `CONTACT INFORMATION
+${'='.repeat(50)}
+
+GitHub:    https://github.com/${userData?.login || 'username'}
+Email:     ${userData?.email || 'See GitHub profile'}
+Website:   https://${userData?.login || 'username'}.github.io
+
+Feel free to reach out for:
+- Open source collaboration
+- Project discussions
+- Technical consulting
+- Speaking opportunities`
+        },
+        'README.md': {
+          type: 'file',
+          content: `# Welcome to ${userData?.login || 'my'}'s terminal
+
+This is an interactive Unix-style shell showcasing my GitHub profile.
+
+## Available Commands
+
+Standard Unix commands:
+- ls          list directory contents
+- cd [dir]    change directory
+- cat [file]  display file contents
+- pwd         print working directory
+- clear       clear the terminal
+- whoami      display current user
+- date        show current date/time
+- echo [text] print text
+- history     show command history
+- help        show this help
+
+Special commands:
+- stats       show GitHub statistics
+- neofetch    display system info
+
+Try 'ls' to see available files, or 'cat README.md' to read this file.`
+        },
+        'projects': {
+          type: 'directory',
+          children: projectsDir
+        }
+      }
+    }
   }
-  
-  const spacesNeeded = width - visualLength
-  return line + ' '.repeat(spacesNeeded)
 }
 
-function createBox(title: string, content: string): string {
-  const width = 64
-  const topBorder = '┌' + '─'.repeat(width) + '┐'
-  const bottomBorder = '└' + '─'.repeat(width) + '┘'
-  
-  const titleLen = getVisualLength(title)
-  const titlePadLeft = Math.floor((width - titleLen) / 2)
-  const titlePadRight = width - titleLen - titlePadLeft
-  const titleLine = ' '.repeat(titlePadLeft) + title + ' '.repeat(titlePadRight)
-  
-  const contentLines = content.split('\n').map(line => {
-    return padLine(line, width)
-  }).join('\n')
-  
-  return `${topBorder}\n${titleLine}\n${bottomBorder}\n${contentLines}`
+function resolvePath(path: string): string {
+  if (path === '~' || path === '') return '~'
+  if (path === '/') return '~'
+  if (path === '.') return currentPath
+  if (path === '..') {
+    if (currentPath === '~') return '~'
+    const parts = currentPath.split('/').filter(Boolean)
+    parts.pop()
+    return parts.length === 0 ? '~' : parts.join('/')
+  }
+  if (path.startsWith('~/')) return path
+  if (path.startsWith('/')) return '~' + path
+  if (currentPath === '~') return `~/${path}`
+  return `${currentPath}/${path}`
 }
 
-function createBoxWithDivider(title: string, content: string): string {
-  const width = 64
-  const topBorder = '┌' + '─'.repeat(width) + '┐'
-  const bottomBorder = '└' + '─'.repeat(width) + '┘'
-  const middleDivider = '├' + '─'.repeat(width) + '┤'
+function getNode(fs: FileSystem, path: string): any {
+  if (path === '~') return fs['~']
+  const parts = path.replace(/^~\/?/, '').split('/').filter(Boolean)
+  let current = fs['~']
   
-  const titleLen = getVisualLength(title)
-  const titlePadLeft = Math.floor((width - titleLen) / 2)
-  const titlePadRight = width - titleLen - titlePadLeft
-  const titleLine = ' '.repeat(titlePadLeft) + title + ' '.repeat(titlePadRight)
-  
-  const contentLines = content.split('\n').map(line => {
-    return padLine(line, width)
-  }).join('\n')
-  
-  return `${topBorder}\n${titleLine}\n${middleDivider}\n${contentLines}\n${bottomBorder}`
+  for (const part of parts) {
+    if (!current.children || !current.children[part]) return null
+    current = current.children[part]
+  }
+  return current
 }
 
 export async function executeCommand(
@@ -71,156 +151,155 @@ export async function executeCommand(
   userData: any,
   repoData: RepoData | null
 ): Promise<string> {
-  const cmd = command.toLowerCase().trim()
+  const parts = command.trim().split(/\s+/)
+  const cmd = parts[0].toLowerCase()
+  const args = parts.slice(1)
+  
+  const fs = createFileSystem(userData, repoData)
 
   switch (cmd) {
-    case 'help':
-      const helpContent = `  help      - Show this help menu                               
-  about     - Display developer bio and background              
-  skills    - List technical skills and proficiencies           
-  projects  - Show featured projects and repositories           
-  stats     - Display GitHub statistics and metrics             
-  contact   - Get contact information and social links          
-  clear     - Clear terminal screen                             `
+    case 'ls':
+    case 'dir': {
+      const targetPath = args[0] ? resolvePath(args[0]) : currentPath
+      const node = getNode(fs, targetPath)
       
-      return `${createBoxWithDivider('AVAILABLE COMMANDS', helpContent)}
-
-TIP: Use arrow keys to navigate command history
-TIP: Press Tab to auto-complete commands`
-
-    case 'about':
-      const aboutContent = `
-> Name: ${userData?.login || 'GitHub Developer'}
-> Role: Full-Stack Developer & Open Source Contributor
-> Location: Remote / Global
-
-${userData?.bio || 'Passionate developer building impactful software solutions.'}
-
-I specialize in creating elegant, performant web applications with a
-focus on user experience and clean code architecture. My work spans
-across multiple technologies and domains, always pushing to learn and
-improve.
-
-> Profile: https://github.com/${userData?.login || 'username'}`
+      if (!node) return `ls: ${args[0]}: No such file or directory`
+      if (node.type !== 'directory') return `ls: ${args[0]}: Not a directory`
       
-      return createBox('ABOUT ME', aboutContent)
-
-    case 'skills':
-      if (!repoData || !repoData.languages) {
-        return 'Loading skills data...'
+      const items = Object.keys(node.children || {}).sort()
+      if (items.length === 0) return ''
+      
+      const dirs = items.filter(name => node.children![name].type === 'directory')
+      const files = items.filter(name => node.children![name].type === 'file')
+      
+      let output = ''
+      if (dirs.length > 0) {
+        output += dirs.map(d => `\x1b[34m${d}/\x1b[0m`).join('  ')
       }
-
-      const languages = Object.entries(repoData.languages)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8)
-
-      const total = languages.reduce((sum, [, val]) => sum + val, 0)
-
-      let skillsContent = `
->> PRIMARY LANGUAGES
-`
-
-      languages.forEach(([lang, bytes]) => {
-        const percentage = ((bytes / total) * 100).toFixed(1)
-        const barLength = Math.floor((bytes / total) * 30)
-        const bar = '█'.repeat(barLength) + '░'.repeat(30 - barLength)
-        skillsContent += `\n   ${lang.padEnd(15)} [${bar}] ${percentage}%`
-      })
-
-      skillsContent += `
-
->> TECH STACK
-   • Frontend: React, TypeScript, Tailwind CSS
-   • Backend: Node.js, Express, REST APIs
-   • Tools: Git, GitHub, VS Code, Docker
-   • Practices: Agile, TDD, CI/CD, Code Review`
-
-      return createBox('TECHNICAL SKILLS', skillsContent)
-
-    case 'projects':
-      if (!repoData || !repoData.repos || repoData.repos.length === 0) {
-        return 'Loading projects data...'
+      if (files.length > 0) {
+        if (output) output += '  '
+        output += files.join('  ')
       }
+      return output
+    }
 
-      const topRepos = repoData.repos
-        .filter((r: any) => !r.fork)
-        .sort((a: any, b: any) => (b.stargazers_count || 0) - (a.stargazers_count || 0))
-        .slice(0, 5)
-
-      let projectsContent = ''
-
-      topRepos.forEach((repo: any, index: number) => {
-        projectsContent += `
-
->> [${index + 1}] ${repo.name}
-   ${repo.description || 'No description available'}
-   
-   Language: ${repo.language || 'Multiple'}
-   Stars: ⭐ ${repo.stargazers_count || 0} | Forks: 🔱 ${repo.forks_count || 0}
-   URL: ${repo.html_url}`
-      })
-
-      return createBox('FEATURED PROJECTS', projectsContent)
-
-    case 'stats':
-      if (!repoData) {
-        return 'Loading statistics...'
+    case 'cd': {
+      if (args.length === 0) {
+        currentPath = '~'
+        return ''
       }
+      
+      const targetPath = resolvePath(args[0])
+      const node = getNode(fs, targetPath)
+      
+      if (!node) return `cd: ${args[0]}: No such file or directory`
+      if (node.type !== 'directory') return `cd: ${args[0]}: Not a directory`
+      
+      currentPath = targetPath
+      return ''
+    }
 
-      const statsContent = `
->> REPOSITORY METRICS
-   Total Repositories:     ${repoData.repos.length}
-   Public Repos:           ${repoData.repos.filter((r: any) => !r.private).length}
-   Total Stars Received:   ⭐ ${repoData.totalStars}
-   Total Forks:            🔱 ${repoData.totalForks}
+    case 'pwd':
+      return currentPath
 
->> ACTIVITY
-   Active Projects:        ${repoData.repos.filter((r: any) => !r.archived).length}
-   Archived:               ${repoData.repos.filter((r: any) => r.archived).length}
-   
->> LANGUAGES
-   Primary Language:       ${Object.entries(repoData.languages).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'N/A'}
-   Language Diversity:     ${Object.keys(repoData.languages).length} languages
+    case 'cat': {
+      if (args.length === 0) return 'cat: missing file operand'
+      
+      const targetPath = resolvePath(args[0])
+      const node = getNode(fs, targetPath)
+      
+      if (!node) return `cat: ${args[0]}: No such file or directory`
+      if (node.type === 'directory') return `cat: ${args[0]}: Is a directory`
+      
+      return node.content || ''
+    }
 
->> PROFILE
-   GitHub: https://github.com/${userData?.login || 'username'}`
+    case 'whoami':
+      return userData?.login || 'guest'
 
-      return createBox('GITHUB STATISTICS', statsContent)
+    case 'date':
+      return new Date().toString()
 
-    case 'contact':
-      const contactContent = `
->> CONNECT WITH ME
-
-   GitHub:     https://github.com/${userData?.login || 'username'}
-   Email:      ${userData?.email || 'Available on GitHub profile'}
-   
->> SOCIAL LINKS
-   
-   Portfolio:  https://${userData?.login || 'username'}.github.io
-   LinkedIn:   Connect via GitHub profile
-   Twitter:    Follow via GitHub profile
-
->> OPEN FOR
-   
-   ✓ Collaboration on open source projects
-   ✓ Technical discussions and code reviews
-   ✓ Freelance opportunities
-   ✓ Speaking engagements
-
-Feel free to reach out! I'm always interested in connecting with
-fellow developers and working on exciting projects.`
-
-      return createBox('CONTACT INFORMATION', contactContent)
+    case 'echo':
+      return args.join(' ')
 
     case 'clear':
       return 'CLEAR'
 
-    default:
-      const errorContent = `
-Command not found: "${command}"
+    case 'help': {
+      return `Available commands:
 
-Type 'help' to see available commands.`
+File system:
+  ls [dir]       list directory contents
+  cd [dir]       change directory  
+  pwd            print working directory
+  cat [file]     display file contents
+
+Information:
+  whoami         display current user
+  date           show current date and time
+  echo [text]    print text to terminal
+  stats          show GitHub statistics
+  neofetch       display system information
+
+Utility:
+  history        show command history
+  clear          clear terminal screen
+  help           show this help message
+
+Try these:
+  ls                  - see available files
+  cat README.md       - read the introduction
+  cat about.txt       - learn about me
+  cd projects && ls   - browse my projects
+  stats               - view GitHub stats`
+    }
+
+    case 'history':
+      return 'Use arrow keys (↑/↓) to navigate command history'
+
+    case 'stats': {
+      if (!repoData) return 'Loading GitHub statistics...'
       
-      return createBox('ERROR', errorContent)
+      const totalRepos = repoData.repos.length
+      const publicRepos = repoData.repos.filter((r: any) => !r.private).length
+      const languages = Object.keys(repoData.languages).length
+      const topLang = Object.entries(repoData.languages).sort((a: any, b: any) => b[1] - a[1])[0]?.[0]
+      
+      return `GitHub Statistics for ${userData?.login}
+${'='.repeat(50)}
+
+Repositories:    ${totalRepos} (${publicRepos} public)
+Total Stars:     ${repoData.totalStars}
+Total Forks:     ${repoData.totalForks}
+Languages:       ${languages}
+Top Language:    ${topLang || 'N/A'}
+
+Profile:         https://github.com/${userData?.login}`
+    }
+
+    case 'neofetch': {
+      const user = userData?.login || 'guest'
+      const repos = repoData?.repos.length || 0
+      const stars = repoData?.totalStars || 0
+      const langs = Object.keys(repoData?.languages || {}).length
+      const topLang = Object.entries(repoData?.languages || {}).sort((a: any, b: any) => b[1] - a[1])[0]?.[0] || 'N/A'
+      
+      return `        ___           ${user}@github.com
+       (o o)          -------------------------
+      (  =  )         OS: Web Terminal v2.0
+       -----          Shell: spark-sh
+      |     |         Theme: Developer Red
+      |_____|         Repos: ${repos}
+                      Stars: ${stars}
+                      Languages: ${langs}
+                      Primary: ${topLang}`
+    }
+
+    case '':
+      return ''
+
+    default:
+      return `${cmd}: command not found. Type 'help' for available commands.`
   }
 }
