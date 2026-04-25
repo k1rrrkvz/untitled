@@ -178,11 +178,11 @@ export function Terminal({ userData, repoData, loading, lastUpdate }: TerminalPr
           )}
 
           <div 
-            className="flex-1 overflow-y-auto p-4 crt-flicker cursor-text" 
+            className="flex-1 overflow-y-auto overflow-x-hidden p-4 crt-flicker cursor-text min-h-0" 
             ref={scrollRef}
             onClick={() => inputRef.current?.focus()}
           >
-            <div className="space-y-2 font-mono text-sm sm:text-base">
+            <div className="space-y-2 font-mono text-sm sm:text-base min-h-full">
               {lines && lines.map((line) => (
                 <div key={line.id}>
                   {line.type === 'command' ? (
